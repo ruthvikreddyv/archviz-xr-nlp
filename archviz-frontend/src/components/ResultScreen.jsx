@@ -1,0 +1,335 @@
+import { useState } from "react";
+
+const s = {
+  page: {
+    minHeight: "100vh",
+    background: "linear-gradient(135deg, #0f0f1a 0%, #1a1030 100%)",
+    padding: "2rem",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+  },
+  header: {
+    width: "100%",
+    maxWidth: "640px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: "2rem",
+  },
+  logo: {
+    fontSize: "13px",
+    letterSpacing: "3px",
+    color: "#7F77DD",
+    textTransform: "uppercase",
+  },
+  resetBtn: {
+    fontSize: "12px",
+    color: "#555",
+    background: "none",
+    border: "1px solid #222",
+    padding: "6px 14px",
+    borderRadius: "20px",
+    cursor: "pointer",
+    color: "#888",
+  },
+  stats: {
+    display: "flex",
+    gap: "10px",
+    marginBottom: "1.5rem",
+    width: "100%",
+    maxWidth: "640px",
+  },
+  stat: (color) => ({
+    flex: 1,
+    background: "rgba(255,255,255,0.03)",
+    border: `1px solid ${color}33`,
+    borderRadius: "10px",
+    padding: "12px",
+    textAlign: "center",
+  }),
+  statNum: (color) => ({
+    fontSize: "24px",
+    fontWeight: "800",
+    color: color,
+  }),
+  statLabel: {
+    fontSize: "11px",
+    color: "#555",
+    marginTop: "2px",
+  },
+  card: {
+    width: "100%",
+    maxWidth: "640px",
+    background: "rgba(255,255,255,0.03)",
+    border: "1px solid rgba(255,255,255,0.08)",
+    borderRadius: "14px",
+    padding: "1.4rem",
+    marginBottom: "12px",
+  },
+  cardTitle: {
+    fontSize: "11px",
+    fontWeight: "700",
+    color: "#555",
+    textTransform: "uppercase",
+    letterSpacing: "1px",
+    marginBottom: "10px",
+  },
+  explanation: {
+    fontSize: "14px",
+    color: "#ccc",
+    lineHeight: "1.8",
+  },
+  quizQ: {
+    fontSize: "13px",
+    fontWeight: "600",
+    color: "#fff",
+    marginBottom: "10px",
+    lineHeight: "1.5",
+  },
+  option: (selected, correct, revealed) => ({
+    display: "flex",
+    alignItems: "center",
+    gap: "10px",
+    padding: "10px 14px",
+    borderRadius: "8px",
+    marginBottom: "6px",
+    cursor: revealed ? "default" : "pointer",
+    border: `1px solid ${
+      !revealed ? "rgba(255,255,255,0.08)" :
+      correct   ? "rgba(52,211,153,0.4)"   :
+      selected  ? "rgba(239,68,68,0.4)"    :
+                  "rgba(255,255,255,0.05)"
+    }`,
+    background:
+      !revealed ? "rgba(255,255,255,0.02)" :
+      correct   ? "rgba(52,211,153,0.08)"  :
+      selected  ? "rgba(239,68,68,0.08)"   :
+                  "rgba(255,255,255,0.01)",
+    transition: "all 0.2s",
+  }),
+  optionText: (selected, correct, revealed) => ({
+    fontSize: "13px",
+    color:
+      !revealed ? "#aaa"    :
+      correct   ? "#34d399" :
+      selected  ? "#f87171" :
+                  "#444",
+  }),
+  navBtns: {
+    display: "flex",
+    justifyContent: "space-between",
+    marginTop: "12px",
+  },
+  navBtn: (disabled) => ({
+    fontSize: "12px",
+    padding: "7px 16px",
+    borderRadius: "8px",
+    border: "1px solid #222",
+    background: "none",
+    color: disabled ? "#333" : "#888",
+    cursor: disabled ? "default" : "pointer",
+  }),
+  arBtn: {
+    width: "100%",
+    maxWidth: "640px",
+    padding: "16px",
+    borderRadius: "12px",
+    border: "none",
+    background: "linear-gradient(135deg, #7c3aed, #1D9E75)",
+    color: "#fff",
+    fontSize: "15px",
+    fontWeight: "700",
+    cursor: "pointer",
+    marginBottom: "12px",
+    letterSpacing: "0.5px",
+  },
+  nodeList: {
+    display: "flex",
+    flexWrap: "wrap",
+    gap: "6px",
+  },
+  nodeTag: (type) => ({
+    fontSize: "11px",
+    padding: "3px 10px",
+    borderRadius: "20px",
+    background:
+      type === "component" ? "rgba(124,58,237,0.15)" :
+      type === "process"   ? "rgba(245,158,11,0.15)" :
+                             "rgba(107,114,128,0.15)",
+    color:
+      type === "component" ? "#a78bfa" :
+      type === "process"   ? "#fbbf24" :
+                             "#9ca3af",
+    border: `1px solid ${
+      type === "component" ? "rgba(124,58,237,0.3)" :
+      type === "process"   ? "rgba(245,158,11,0.3)" :
+                             "rgba(107,114,128,0.3)"
+    }`,
+  }),
+};
+
+function QuizCard({ quiz }) {
+  const [current, setCurrent] = useState(0);
+  const [selected, setSelected] = useState(null);
+  const [revealed, setRevealed] = useState(false);
+  const [score, setScore] = useState(0);
+  const [done, setDone] = useState(false);
+
+  const q = quiz[current];
+
+  const handleSelect = (idx) => {
+    if (revealed) return;
+    setSelected(idx);
+    setRevealed(true);
+    if (idx === q.answer) setScore((s) => s + 1);
+  };
+
+  const handleNext = () => {
+    if (current < quiz.length - 1) {
+      setCurrent((c) => c + 1);
+      setSelected(null);
+      setRevealed(false);
+    } else {
+      setDone(true);
+    }
+  };
+
+  if (done) {
+    return (
+      <div style={{ textAlign: "center", padding: "1rem 0" }}>
+        <div style={{ fontSize: "40px", marginBottom: "10px" }}>
+          {score === quiz.length ? "🎉" : score >= quiz.length / 2 ? "👍" : "📚"}
+        </div>
+        <div style={{ fontSize: "22px", fontWeight: "800", color: "#34d399" }}>
+          {score} / {quiz.length}
+        </div>
+        <div style={{ fontSize: "13px", color: "#666", marginTop: "4px" }}>
+          {score === quiz.length ? "Perfect score!" :
+           score >= quiz.length / 2 ? "Good understanding" : "Keep exploring the AR view"}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <div style={{ fontSize: "11px", color: "#555", marginBottom: "10px" }}>
+        Question {current + 1} of {quiz.length}
+      </div>
+      <div style={s.quizQ}>{q.q}</div>
+      {q.options.map((opt, idx) => (
+        <div
+          key={idx}
+          style={s.option(idx === selected, idx === q.answer, revealed)}
+          onClick={() => handleSelect(idx)}
+        >
+          <span style={{ fontSize: "11px", color: "#444", width: "16px" }}>
+            {String.fromCharCode(65 + idx)}
+          </span>
+          <span style={s.optionText(idx === selected, idx === q.answer, revealed)}>
+            {opt}
+          </span>
+          {revealed && idx === q.answer && (
+            <span style={{ marginLeft: "auto", color: "#34d399" }}>✓</span>
+          )}
+        </div>
+      ))}
+      {revealed && (
+        <div style={s.navBtns}>
+          <div />
+          <button style={s.navBtn(false)} onClick={handleNext}>
+            {current < quiz.length - 1 ? "Next →" : "See results"}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default function ResultScreen({ contract, onReset }) {
+  if (!contract) return null;
+
+  const components = contract.nodes.filter((n) => n.type === "component");
+  const processes  = contract.nodes.filter((n) => n.type === "process");
+  const data       = contract.nodes.filter((n) => n.type === "data");
+
+  return (
+    <div style={s.page}>
+      <div style={s.header}>
+        <div style={s.logo}>ArchViz-XR</div>
+        <button style={s.resetBtn} onClick={onReset}>← New diagram</button>
+      </div>
+
+      {/* Stats */}
+      <div style={s.stats}>
+        <div style={s.stat("#a78bfa")}>
+          <div style={s.statNum("#a78bfa")}>{contract.nodes.length}</div>
+          <div style={s.statLabel}>Nodes</div>
+        </div>
+        <div style={s.stat("#34d399")}>
+          <div style={s.statNum("#34d399")}>{contract.edges.length}</div>
+          <div style={s.statLabel}>Edges</div>
+        </div>
+        <div style={s.stat("#fbbf24")}>
+          <div style={s.statNum("#fbbf24")}>{contract.quiz.length}</div>
+          <div style={s.statLabel}>Quiz Qs</div>
+        </div>
+      </div>
+
+      {/* Open in AR button */}
+      <button style={s.arBtn}>
+        🥽 &nbsp; Open in AR Viewer
+      </button>
+
+      {/* Explanation */}
+      <div style={s.card}>
+        <div style={s.cardTitle}>What this diagram shows</div>
+        <div style={s.explanation}>{contract.explanation}</div>
+      </div>
+
+      {/* Nodes */}
+      <div style={s.card}>
+        <div style={s.cardTitle}>
+          Concepts extracted — {contract.nodes.length} nodes
+        </div>
+        <div style={{ marginBottom: "10px" }}>
+          <div style={{ fontSize: "11px", color: "#555", marginBottom: "5px" }}>
+            Components
+          </div>
+          <div style={s.nodeList}>
+            {components.map((n) => (
+              <span key={n.id} style={s.nodeTag("component")}>{n.label}</span>
+            ))}
+          </div>
+        </div>
+        <div style={{ marginBottom: "10px" }}>
+          <div style={{ fontSize: "11px", color: "#555", marginBottom: "5px" }}>
+            Processes
+          </div>
+          <div style={s.nodeList}>
+            {processes.map((n) => (
+              <span key={n.id} style={s.nodeTag("process")}>{n.label}</span>
+            ))}
+          </div>
+        </div>
+        <div>
+          <div style={{ fontSize: "11px", color: "#555", marginBottom: "5px" }}>
+            Data
+          </div>
+          <div style={s.nodeList}>
+            {data.map((n) => (
+              <span key={n.id} style={s.nodeTag("data")}>{n.label}</span>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Quiz */}
+      <div style={s.card}>
+        <div style={s.cardTitle}>Test your understanding</div>
+        <QuizCard quiz={contract.quiz} />
+      </div>
+    </div>
+  );
+}
