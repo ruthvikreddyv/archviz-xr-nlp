@@ -1,0 +1,260 @@
+{
+  "nodes": [
+    {
+      "id": "encoder",
+      "label": "Encoder",
+      "type": "component",
+      "x": -0.351,
+      "y": 1.906,
+      "z": 0.666
+    },
+    {
+      "id": "decoder",
+      "label": "Decoder",
+      "type": "component",
+      "x": 0.57,
+      "y": -0.68,
+      "z": -0.17
+    },
+    {
+      "id": "input_tokens",
+      "label": "Input Tokens",
+      "type": "data",
+      "x": -1.506,
+      "y": 1.352,
+      "z": 0.579
+    },
+    {
+      "id": "output_tokens",
+      "label": "Output Tokens",
+      "type": "data",
+      "x": 1.132,
+      "y": -1.394,
+      "z": 1.298
+    },
+    {
+      "id": "add",
+      "label": "Add",
+      "type": "process",
+      "x": 1.822,
+      "y": -0.497,
+      "z": -0.99
+    },
+    {
+      "id": "norm",
+      "label": "Norm",
+      "type": "process",
+      "x": -1.833,
+      "y": -0.338,
+      "z": 0.39
+    },
+    {
+      "id": "multi_head_attention",
+      "label": "Multi-Head Attention",
+      "type": "process",
+      "x": -0.777,
+      "y": -0.223,
+      "z": 0.986
+    },
+    {
+      "id": "self_attention",
+      "label": "Self-Attention",
+      "type": "process",
+      "x": -1.452,
+      "y": -0.784,
+      "z": -1.075
+    },
+    {
+      "id": "positional_encoding",
+      "label": "Positional Encoding",
+      "type": "process",
+      "x": 0.374,
+      "y": 1.681,
+      "z": -1.091
+    },
+    {
+      "id": "feed_forward_network",
+      "label": "Feed Forward Network",
+      "type": "process",
+      "x": 0.281,
+      "y": 0.641,
+      "z": -1.964
+    },
+    {
+      "id": "decoder_add",
+      "label": "Decoder Add",
+      "type": "process",
+      "x": 0.92,
+      "y": -0.235,
+      "z": -1.57
+    },
+    {
+      "id": "decoder_norm",
+      "label": "Decoder Norm",
+      "type": "process",
+      "x": 0.897,
+      "y": 0.753,
+      "z": 1.313
+    },
+    {
+      "id": "multi_head_add_norm",
+      "label": "Multi-Head Add & Norm",
+      "type": "process",
+      "x": -0.694,
+      "y": -1.581,
+      "z": 1.008
+    },
+    {
+      "id": "masked_multi_head_self_attention",
+      "label": "Masked Multi-Head Self-Attention",
+      "type": "process",
+      "x": -0.158,
+      "y": -1.461,
+      "z": -0.731
+    },
+    {
+      "id": "contextual_representations",
+      "label": "Contextual Representations",
+      "type": "data",
+      "x": -1.377,
+      "y": 1.37,
+      "z": -0.992
+    },
+    {
+      "id": "the_input_sequence",
+      "label": "The Input Sequence",
+      "type": "data",
+      "x": 1.864,
+      "y": 0.013,
+      "z": 0.343
+    },
+    {
+      "id": "the_output_sequence",
+      "label": "The Output Sequence",
+      "type": "data",
+      "x": 0.286,
+      "y": -0.522,
+      "z": 2.0
+    }
+  ],
+  "edges": [
+    {
+      "from": "encoder",
+      "to": "input_tokens",
+      "label": "feeds"
+    },
+    {
+      "from": "encoder",
+      "to": "contextual_representations",
+      "label": "produces"
+    },
+    {
+      "from": "decoder",
+      "to": "contextual_representations",
+      "label": "uses"
+    },
+    {
+      "from": "decoder",
+      "to": "the_input_sequence",
+      "label": "uses"
+    },
+    {
+      "from": "decoder",
+      "to": "output_tokens",
+      "label": "outputs"
+    },
+    {
+      "from": "decoder",
+      "to": "decoder_add",
+      "label": "applies"
+    },
+    {
+      "from": "decoder",
+      "to": "the_output_sequence",
+      "label": "produces"
+    },
+    {
+      "from": "multi_head_attention",
+      "to": "masked_multi_head_self_attention",
+      "label": "feeds"
+    },
+    {
+      "from": "multi_head_attention",
+      "to": "self_attention",
+      "label": "produces"
+    },
+    {
+      "from": "self_attention",
+      "to": "masked_multi_head_self_attention",
+      "label": "produces"
+    },
+    {
+      "from": "positional_encoding",
+      "to": "feed_forward_network",
+      "label": "feeds"
+    },
+    {
+      "from": "feed_forward_network",
+      "to": "decoder_add",
+      "label": "feeds"
+    },
+    {
+      "from": "decoder_add",
+      "to": "decoder_norm",
+      "label": "feeds"
+    },
+    {
+      "from": "decoder_norm",
+      "to": "multi_head_attention",
+      "label": "feeds"
+    },
+    {
+      "from": "decoder_norm",
+      "to": "multi_head_add_norm",
+      "label": "feeds"
+    },
+    {
+      "from": "multi_head_add_norm",
+      "to": "output_tokens",
+      "label": "produces"
+    },
+    {
+      "from": "masked_multi_head_self_attention",
+      "to": "positional_encoding",
+      "label": "feeds"
+    }
+  ],
+  "explanation": "This diagram illustrates a sequence-to-sequence model, where the encoder takes in the input sequence and produces contextual representations, which are then used by the decoder to generate the output sequence. The decoder consists of multiple layers, including a feed forward network, multi-head attention, and positional encoding.",
+  "quiz": [
+    {
+      "q": "What type of model is depicted in this diagram?",
+      "options": [
+        "Sequence-to-Sequence Model",
+        "Transformer Model",
+        "Recurrent Neural Network",
+        "Convolutional Neural Network"
+      ],
+      "answer": 0
+    },
+    {
+      "q": "What is the purpose of the encoder in this model?",
+      "options": [
+        "To generate the output sequence",
+        "To produce contextual representations",
+        "To apply multi-head attention",
+        "To feed the input sequence to the decoder"
+      ],
+      "answer": 1
+    },
+    {
+      "q": "What is the output of the decoder in this model?",
+      "options": [
+        "Contextual representations",
+        "The input sequence",
+        "The output sequence",
+        "The masked multi-head self-attention output"
+      ],
+      "answer": 2
+    }
+  ]
+}
