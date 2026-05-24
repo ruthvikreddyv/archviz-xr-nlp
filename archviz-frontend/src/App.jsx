@@ -13,6 +13,15 @@ export default function App() {
   const [contract, setContract] = useState(null);
   const [error, setError] = useState(null);
 
+  const readError = async (res, fallback) => {
+    try {
+      const body = await res.json();
+      return body.detail || fallback;
+    } catch {
+      return fallback;
+    }
+  };
+
   const handleUpload = async (file) => {
     setScreen("pipeline");
     setError(null);
@@ -26,7 +35,7 @@ export default function App() {
         body: formData,
       });
 
-      if (!res.ok) throw new Error("Pipeline failed. Check backend.");
+      if (!res.ok) throw new Error(await readError(res, "Pipeline failed. Check backend."));
       const data = await res.json();
       setContract(data);
       setScreen("result");
@@ -42,7 +51,7 @@ export default function App() {
 
     try {
       const res = await fetch("http://localhost:8000/demo");
-      if (!res.ok) throw new Error("Demo load failed. Check backend.");
+      if (!res.ok) throw new Error(await readError(res, "Demo load failed. Check backend."));
       const data = await res.json();
       setContract(data);
       setScreen("result");

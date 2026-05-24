@@ -3,9 +3,27 @@ import cv2
 from PIL import Image
 import fitz  # PyMuPDF
 import os
+import shutil
 
-# Tell pytesseract where Tesseract is installed on Windows
-pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
+
+def configure_tesseract():
+    """
+    Find the Tesseract executable.
+    The Python package is only a wrapper; the native Tesseract app must exist.
+    """
+    candidates = [
+        os.getenv("TESSERACT_CMD"),
+        shutil.which("tesseract"),
+        r"C:\Program Files\Tesseract-OCR\tesseract.exe",
+        r"C:\Program Files (x86)\Tesseract-OCR\tesseract.exe",
+    ]
+
+    for candidate in candidates:
+        if candidate and os.path.exists(candidate):
+            pytesseract.pytesseract.tesseract_cmd = candidate
+            return candidate
+
+    return None
 
 
 def preprocess_image(path: str):
@@ -37,8 +55,19 @@ def extract_from_image(path: str) -> str:
     Extract all text from a diagram image (JPG, PNG).
     Returns a clean string of all text found.
     """
+    if not configure_tesseract():
+        raise ValueError(
+            "Tesseract OCR is not installed or not configured. "
+            "Install Tesseract, then set TESSERACT_CMD to tesseract.exe if it is not on PATH."
+        )
+
     processed = preprocess_image(path)
-    raw_text = pytesseract.image_to_string(processed)
+    try:
+        raw_text = pytesseract.image_to_string(processed)
+    except pytesseract.TesseractNotFoundError:
+        raise ValueError(
+            "Tesseract OCR could not be started. Check TESSERACT_CMD or add tesseract.exe to PATH."
+        )
 
     # Clean up: remove empty lines and strip whitespace
     lines = [line.strip() for line in raw_text.splitlines() if line.strip()]
@@ -75,10 +104,10 @@ def extract(path: str) -> str:
     ext = os.path.splitext(path)[1].lower()
 
     if ext == ".pdf":
-        print(f"[OCR] Detected PDF — using PyMuPDF")
+        print("[OCR] Detected PDF - using PyMuPDF")
         text = extract_from_pdf(path)
     elif ext in [".png", ".jpg", ".jpeg", ".bmp", ".tiff"]:
-        print(f"[OCR] Detected image — using Tesseract")
+        print("[OCR] Detected image - using Tesseract")
         text = extract_from_image(path)
     else:
         raise ValueError(f"Unsupported file type: {ext}")

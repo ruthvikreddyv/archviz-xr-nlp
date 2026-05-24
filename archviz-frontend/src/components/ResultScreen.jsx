@@ -253,6 +253,9 @@ export default function ResultScreen({ contract, onReset }) {
   const components = contract.nodes.filter((n) => n.type === "component");
   const processes  = contract.nodes.filter((n) => n.type === "process");
   const data       = contract.nodes.filter((n) => n.type === "data");
+  const openArViewer = () => {
+    window.open("http://localhost:8000/ar/index.html", "_blank", "noopener,noreferrer");
+  };
 
   return (
     <div style={s.page}>
@@ -278,7 +281,7 @@ export default function ResultScreen({ contract, onReset }) {
       </div>
 
       {/* Open in AR button */}
-      <button style={s.arBtn}>
+      <button style={s.arBtn} onClick={openArViewer}>
         🥽 &nbsp; Open in AR Viewer
       </button>
 

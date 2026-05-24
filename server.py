@@ -13,6 +13,7 @@ Run:
 
 from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 import json
 import os
@@ -24,6 +25,8 @@ from precache_demo import load_cache
 from pipeline.voice import answer_question
 
 app = FastAPI(title="ArchViz-XR API", version="1.0")
+CONTRACT_PATH = "output/contract.json"
+AR_VIEWER_DIR = "archviz-ro"
 
 # Allow React frontend (localhost:5173) to call this API
 app.add_middleware(
@@ -32,6 +35,15 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+if os.path.isdir(AR_VIEWER_DIR):
+    app.mount("/ar", StaticFiles(directory=AR_VIEWER_DIR, html=True), name="ar-viewer")
+
+
+def save_latest_contract(contract: dict) -> None:
+    os.makedirs(os.path.dirname(CONTRACT_PATH), exist_ok=True)
+    with open(CONTRACT_PATH, "w", encoding="utf-8") as f:
+        json.dump(contract, f, indent=2, ensure_ascii=False)
 
 
 # ── GET /demo ─────────────────────────────────────────────
@@ -44,12 +56,29 @@ def get_demo():
     """
     try:
         contract = load_cache()
+        save_latest_contract(contract)
         return contract
     except FileNotFoundError:
         raise HTTPException(
             status_code=404,
             detail="Demo cache not found. Run: python precache_demo.py transformer.jpeg"
         )
+
+
+@app.get("/contract")
+def get_contract():
+    """
+    Return the most recent contract for the AR viewer.
+    This is updated by /demo and /analyze.
+    """
+    if not os.path.exists(CONTRACT_PATH):
+        raise HTTPException(
+            status_code=404,
+            detail="No contract found yet. Run /demo or /analyze first."
+        )
+
+    with open(CONTRACT_PATH, "r", encoding="utf-8") as f:
+        return json.load(f)
 
 
 # ── POST /analyze ─────────────────────────────────────────
@@ -76,6 +105,7 @@ async def analyze(file: UploadFile = File(...)):
 
     try:
         contract = run_pipeline(tmp_path)
+        save_latest_contract(contract)
         return contract
     except ValueError as e:
         raise HTTPException(status_code=422, detail=str(e))
@@ -126,6 +156,6 @@ def health():
 def root():
     return {
         "name": "ArchViz-XR API",
-        "endpoints": ["/demo", "/analyze", "/voice-query", "/health"],
+        "endpoints": ["/demo", "/analyze", "/contract", "/voice-query", "/health", "/ar"],
         "docs": "http://localhost:8000/docs"
     }

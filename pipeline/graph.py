@@ -17,7 +17,7 @@ def build_graph(entities: list, relations: list) -> nx.DiGraph:
     # If still no edges — connect nodes that share similar words
     # This is common when OCR text lacks full sentences
     if G.number_of_edges() == 0:
-        print("[GRAPH] No relations found — building proximity edges")
+        print("[GRAPH] No relations found - building proximity edges")
         node_list = list(G.nodes())
         for i in range(len(node_list)):
             for j in range(i + 1, len(node_list)):

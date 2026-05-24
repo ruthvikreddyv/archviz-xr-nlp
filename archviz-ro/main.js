@@ -28,6 +28,7 @@ const TYPE_TAG_COLORS = {
 
 const EDGE_COLOR = 0x5566bb;
 const BG_COLOR   = 0x0a0a0f;
+const CONTRACT_API_URL = 'http://localhost:8000/contract';
 
 // ── SCENE ──────────────────────────────────────────────────────
 const scene = new THREE.Scene();
@@ -104,6 +105,7 @@ const allNodeMeshes = [];
 const edgeMap       = {};   // id → [connected ids]
 const edgeMeshes    = [];   // for highlight
 const edgePulses    = [];   // max 20
+let currentContract = null;
 
 // ── LABEL SPRITE ───────────────────────────────────────────────
 function makeLabel(text, scale = 1.0) {
@@ -280,9 +282,17 @@ function addStars() {
 }
 
 // ── LOAD JSON ──────────────────────────────────────────────────
-fetch('contract.json')
-  .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
+function fetchJson(url) {
+  return fetch(url).then(r => {
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    return r.json();
+  });
+}
+
+fetchJson(CONTRACT_API_URL)
+  .catch(() => fetchJson('contract.json'))
   .then(data => {
+    currentContract = data;
     console.log(`📦 Loaded: ${data.nodes.length} nodes · ${data.edges.length} edges`);
     buildNodes(data.nodes);
     buildEdges(data.edges);
@@ -302,7 +312,7 @@ fetch('contract.json')
     const loading = document.getElementById('loading');
     if (loading) { loading.style.opacity = '0'; setTimeout(() => loading.remove(), 500); }
   })
-  .catch(err => console.error('❌ Failed to load contract.json:', err));
+  .catch(err => console.error('Failed to load contract data:', err));
 
 // ── HOVER + CLICK ──────────────────────────────────────────────
 const raycaster = new THREE.Raycaster();
@@ -377,8 +387,7 @@ function initVoice() {
     const q  = e.results[0][0].transcript;
     const st = document.getElementById('voice-status');
     if (st) st.textContent = `You asked: "${q}"`;
-    // sendVoiceQuery(q); // ← uncomment when As's endpoint is live
-    speakAnswer(`You asked: ${q}. Voice endpoint not connected yet.`);
+    sendVoiceQuery(q);
   };
   recognition.onerror = () => { isMicActive = false; updateMicBtn(); };
   recognition.onend   = () => { isMicActive = false; updateMicBtn(); };
@@ -389,6 +398,40 @@ function speakAnswer(text) {
   window.speechSynthesis.cancel();
   const u = new SpeechSynthesisUtterance(text);
   u.lang = 'en-US'; window.speechSynthesis.speak(u);
+}
+
+async function sendVoiceQuery(question) {
+  if (!currentContract) {
+    speakAnswer('The graph is still loading. Please try again in a moment.');
+    return;
+  }
+
+  const activeNodeId = selectedNodeId || currentContract.nodes?.[0]?.id;
+  if (!activeNodeId) return;
+
+  try {
+    const res = await fetch(VOICE_API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        question,
+        active_node_id: activeNodeId,
+        contract: currentContract
+      })
+    });
+
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const result = await res.json();
+    const box = document.getElementById('voice-answer-box');
+    const answer = document.getElementById('voice-answer');
+    if (answer) answer.textContent = result.answer;
+    if (box) box.style.display = 'block';
+    if (result.highlight_node) highlightNode(result.highlight_node);
+    speakAnswer(result.answer);
+  } catch (err) {
+    console.error('Voice query failed:', err);
+    speakAnswer('I could not reach the voice tutor endpoint.');
+  }
 }
 
 function toggleMic() {

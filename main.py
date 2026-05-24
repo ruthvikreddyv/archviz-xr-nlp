@@ -24,23 +24,23 @@ def run_pipeline(file_path: str) -> dict:
     print(f"{'='*45}\n")
 
     # ── Step 1: OCR ──────────────────────────────
-    print("Step 1/5 — OCR extraction")
+    print("Step 1/5 - OCR extraction")
     text = extract(file_path)
-    print(f"           ✓ {len(text.split())} words extracted\n")
+    print(f"           OK {len(text.split())} words extracted\n")
 
     # ── Step 2: NER ──────────────────────────────
-    print("Step 2/5 — Entity + relation extraction")
+    print("Step 2/5 - Entity + relation extraction")
     ner_result = ner_extract(text)
     entities = ner_result["entities"]
     relations = ner_result["relations"]
-    print(f"           ✓ {len(entities)} entities, {len(relations)} relations\n")
+    print(f"           OK {len(entities)} entities, {len(relations)} relations\n")
 
     if not entities:
         raise ValueError("No entities found. Check image quality.")
 
     # ── Step 3: LLM — semantic enrichment ────────
     # Phase 2: LLM now returns nodes WITH types AND semantic edges
-    print("Step 3/5 — LLM semantic enrichment (Groq)")
+    print("Step 3/5 - LLM semantic enrichment (Groq)")
     llm_result = generate(entities, relations)
     print()
 
@@ -49,7 +49,7 @@ def run_pipeline(file_path: str) -> dict:
     llm_edges = llm_result["edges"]   # semantic edges from LLM
 
     # ── Step 4: Spatial mapping ───────────────────
-    print("Step 4/5 — Building graph + mapping 3D coordinates")
+    print("Step 4/5 - Building graph + mapping 3D coordinates")
 
     # Build graph from LLM's richer output
     import networkx as nx
@@ -99,10 +99,10 @@ def run_pipeline(file_path: str) -> dict:
             "label": data.get("label", "")
         })
 
-    print(f"           ✓ {G.number_of_nodes()} nodes, {G.number_of_edges()} edges\n")
+    print(f"           OK {G.number_of_nodes()} nodes, {G.number_of_edges()} edges\n")
 
     # ── Step 5: Summary ───────────────────────────
-    print("Step 5/5 — Assembling contract")
+    print("Step 5/5 - Assembling contract")
 
     contract = {
         "nodes": final_nodes,
@@ -111,7 +111,7 @@ def run_pipeline(file_path: str) -> dict:
         "quiz": llm_result["quiz"]
     }
 
-    print(f"           ✓ Contract ready\n")
+    print(f"           OK Contract ready\n")
     return contract
 
 
@@ -119,7 +119,7 @@ def save_contract(contract: dict, output_path: str = "output/contract.json"):
     os.makedirs("output", exist_ok=True)
     with open(output_path, "w", encoding="utf-8") as f:
         json.dump(contract, f, indent=2, ensure_ascii=False)
-    print(f"✓ Contract saved → {output_path}")
+    print(f"OK Contract saved -> {output_path}")
 
 
 def print_summary(contract: dict):
@@ -130,7 +130,7 @@ def print_summary(contract: dict):
         types[t] = types.get(t, 0) + 1
 
     print(f"\n{'='*45}")
-    print(f"  Pipeline Complete — Summary")
+    print(f"  Pipeline Complete - Summary")
     print(f"{'='*45}")
     print(f"  Nodes      : {len(contract['nodes'])}")
     for t, count in types.items():
@@ -149,7 +149,7 @@ if __name__ == "__main__":
     file_path = sys.argv[1]
 
     if not os.path.exists(file_path):
-        print(f"Error: File not found — {file_path}")
+        print(f"Error: File not found - {file_path}")
         sys.exit(1)
 
     contract = run_pipeline(file_path)
