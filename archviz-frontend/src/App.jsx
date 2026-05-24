@@ -3,6 +3,8 @@ import UploadScreen from "./components/UploadScreen";
 import PipelineScreen from "./components/PipelineScreen";
 import ResultScreen from "./components/ResultScreen";
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
+
 // App has 3 screens:
 // 1. Upload   — drag-drop image or load demo
 // 2. Pipeline — 5 steps animating as they complete
@@ -22,6 +24,14 @@ export default function App() {
     }
   };
 
+  const extractContract = (payload) => {
+    const nextContract = payload?.contract || payload;
+    if (!nextContract?.nodes || !nextContract?.edges) {
+      throw new Error("Backend response did not include a valid graph contract.");
+    }
+    return nextContract;
+  };
+
   const handleUpload = async (file) => {
     setScreen("pipeline");
     setError(null);
@@ -30,14 +40,14 @@ export default function App() {
       const formData = new FormData();
       formData.append("file", file);
 
-      const res = await fetch("http://localhost:8000/analyze", {
+      const res = await fetch(`${API_BASE_URL}/analyze`, {
         method: "POST",
         body: formData,
       });
 
       if (!res.ok) throw new Error(await readError(res, "Pipeline failed. Check backend."));
       const data = await res.json();
-      setContract(data);
+      setContract(extractContract(data));
       setScreen("result");
     } catch (err) {
       setError(err.message);
@@ -50,10 +60,10 @@ export default function App() {
     setError(null);
 
     try {
-      const res = await fetch("http://localhost:8000/demo");
+      const res = await fetch(`${API_BASE_URL}/demo`);
       if (!res.ok) throw new Error(await readError(res, "Demo load failed. Check backend."));
       const data = await res.json();
-      setContract(data);
+      setContract(extractContract(data));
       setScreen("result");
     } catch (err) {
       setError(err.message);

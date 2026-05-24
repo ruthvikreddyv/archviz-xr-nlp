@@ -49,7 +49,7 @@ archviz-xr-nlp/           ← Python backend (Ru + As)
 │   ├── contract.json     → pipeline output (shared with frontend)
 │   └── demo_cache.json   → pre-cached demo (load instantly)
 ├── main.py               → full pipeline runner
-├── server.py             → FastAPI backend
+├── backend/server.py     → FastAPI backend
 ├── precache_demo.py      → pre-cache demo diagram
 └── .env                  → API keys (never commit)
 
@@ -105,7 +105,7 @@ python precache_demo.py transformer.jpeg
 
 ### Step 6 — Start the backend
 ```bash
-uvicorn server:app --reload --port 8000
+uvicorn backend.server:app --reload --port 8000
 ```
 
 API docs available at: http://localhost:8000/docs

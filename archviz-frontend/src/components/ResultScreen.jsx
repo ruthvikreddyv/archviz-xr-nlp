@@ -349,9 +349,12 @@ function QuizCard({ quiz }) {
 export default function ResultScreen({ contract, onReset }) {
   if (!contract) return null;
 
-  const components = contract.nodes.filter((n) => n.type === "component");
-  const processes  = contract.nodes.filter((n) => n.type === "process");
-  const data       = contract.nodes.filter((n) => n.type === "data");
+  const nodes = contract.nodes ?? [];
+  const edges = contract.edges ?? [];
+  const quiz = contract.quiz ?? [];
+  const components = nodes.filter((n) => n.type === "component");
+  const processes  = nodes.filter((n) => n.type === "process");
+  const data       = nodes.filter((n) => n.type === "data");
 
   const openArViewer = () => {
     window.open("http://localhost:8000/ar/index.html", "_blank", "noopener,noreferrer");
@@ -367,15 +370,15 @@ export default function ResultScreen({ contract, onReset }) {
       {/* Stats */}
       <div style={s.stats}>
         <div style={s.stat("#a78bfa")}>
-          <div style={s.statNum("#a78bfa")}>{contract.nodes.length}</div>
+          <div style={s.statNum("#a78bfa")}>{nodes.length}</div>
           <div style={s.statLabel}>Nodes</div>
         </div>
         <div style={s.stat("#34d399")}>
-          <div style={s.statNum("#34d399")}>{contract.edges.length}</div>
+          <div style={s.statNum("#34d399")}>{edges.length}</div>
           <div style={s.statLabel}>Edges</div>
         </div>
         <div style={s.stat("#fbbf24")}>
-          <div style={s.statNum("#fbbf24")}>{contract.quiz.length}</div>
+          <div style={s.statNum("#fbbf24")}>{quiz.length}</div>
           <div style={s.statLabel}>Quiz Qs</div>
         </div>
       </div>
@@ -388,13 +391,13 @@ export default function ResultScreen({ contract, onReset }) {
       {/* Explanation */}
       <div style={s.card}>
         <div style={s.cardTitle}>What this diagram shows</div>
-        <div style={s.explanation}>{contract.explanation}</div>
+        <div style={s.explanation}>{contract.explanation || "No explanation was generated."}</div>
       </div>
 
       {/* Nodes */}
       <div style={s.card}>
         <div style={s.cardTitle}>
-          Concepts extracted — {contract.nodes.length} nodes
+          Concepts extracted — {nodes.length} nodes
         </div>
         <div style={{ marginBottom: "10px" }}>
           <div style={{ fontSize: "11px", color: "#555", marginBottom: "5px" }}>
@@ -431,7 +434,11 @@ export default function ResultScreen({ contract, onReset }) {
       {/* Quiz */}
       <div style={s.card}>
         <div style={s.cardTitle}>Test your understanding</div>
-        <QuizCard quiz={contract.quiz} />
+        {quiz.length > 0 ? (
+          <QuizCard quiz={quiz} />
+        ) : (
+          <div style={s.explanation}>No quiz questions were generated.</div>
+        )}
       </div>
     </div>
   );
