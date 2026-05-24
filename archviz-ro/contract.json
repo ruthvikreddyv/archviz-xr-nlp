@@ -1,0 +1,538 @@
+{
+  "nodes": [
+    {
+      "id": "{_add",
+      "label": "{ Add",
+      "type": "component",
+      "x": 0.027,
+      "y": 0.987,
+      "z": 1.274
+    },
+    {
+      "id": "norm",
+      "label": "Norm",
+      "type": "component",
+      "x": 0.721,
+      "y": -1.76,
+      "z": -0.602
+    },
+    {
+      "id": "feed_forward_network_decoder_add",
+      "label": "Feed Forward Network DECODER Add",
+      "type": "component",
+      "x": -0.817,
+      "y": 0.579,
+      "z": 1.025
+    },
+    {
+      "id": "norm_multi-head_nx",
+      "label": "Norm Multi-Head Nx",
+      "type": "component",
+      "x": 1.212,
+      "y": -1.12,
+      "z": 0.974
+    },
+    {
+      "id": "attention",
+      "label": "Attention",
+      "type": "component",
+      "x": 0.999,
+      "y": -0.278,
+      "z": -1.284
+    },
+    {
+      "id": "multi-head_add",
+      "label": "Multi-Head Add",
+      "type": "component",
+      "x": -1.732,
+      "y": 0.539,
+      "z": 0.113
+    },
+    {
+      "id": "self-attention",
+      "label": "Self-Attention",
+      "type": "component",
+      "x": 0.825,
+      "y": 0.677,
+      "z": 0.096
+    },
+    {
+      "id": "positional",
+      "label": "Positional",
+      "type": "component",
+      "x": -1.156,
+      "y": -0.064,
+      "z": -1.623
+    },
+    {
+      "id": "output",
+      "label": "Output",
+      "type": "component",
+      "x": 0.525,
+      "y": 1.77,
+      "z": -1.17
+    },
+    {
+      "id": ")_~_ge",
+      "label": ") ~ Ge",
+      "type": "component",
+      "x": 0.897,
+      "y": 0.092,
+      "z": -1.684
+    },
+    {
+      "id": "input_tokens_output_tokens",
+      "label": "Input Tokens Output Tokens",
+      "type": "component",
+      "x": 0.7,
+      "y": -1.143,
+      "z": -1.313
+    },
+    {
+      "id": "decoder",
+      "label": "Decoder",
+      "type": "component",
+      "x": 1.517,
+      "y": 0.755,
+      "z": 1.066
+    },
+    {
+      "id": "the_output_sequence",
+      "label": "the output sequence",
+      "type": "component",
+      "x": -0.49,
+      "y": -1.316,
+      "z": 1.274
+    },
+    {
+      "id": "outputs",
+      "label": "outputs",
+      "type": "component",
+      "x": 0.509,
+      "y": -1.438,
+      "z": 0.587
+    },
+    {
+      "id": "encoder",
+      "label": "Encoder",
+      "type": "component",
+      "x": -0.62,
+      "y": 1.695,
+      "z": 0.266
+    },
+    {
+      "id": "the_input_sequence",
+      "label": "the input sequence",
+      "type": "component",
+      "x": 2.0,
+      "y": 0.079,
+      "z": 0.378
+    },
+    {
+      "id": "contextual_representations",
+      "label": "contextual representations",
+      "type": "component",
+      "x": 0.112,
+      "y": -0.576,
+      "z": 1.612
+    },
+    {
+      "id": "1_1_‘_t_(j)_ada",
+      "label": "1 1 ‘ t (J) Ada",
+      "type": "component",
+      "x": 0.329,
+      "y": 0.921,
+      "z": 1.475
+    },
+    {
+      "id": "add_&_norm",
+      "label": "Add & Norm",
+      "type": "named_entity",
+      "x": 0.089,
+      "y": 0.712,
+      "z": -1.037
+    },
+    {
+      "id": "multi-head_add_&_norm_self-attention_masked_multi-head_self-attention_positional_®_encoding",
+      "label": "Multi-Head Add & Norm Self-Attention Masked Multi-Head Self-Attention Positional ® Encoding",
+      "type": "named_entity",
+      "x": -1.416,
+      "y": -1.398,
+      "z": -0.889
+    },
+    {
+      "id": "input_tokens",
+      "label": "Input Tokens",
+      "type": "named_entity",
+      "x": -1.262,
+      "y": -0.083,
+      "z": 1.432
+    },
+    {
+      "id": "tokens",
+      "label": "Tokens",
+      "type": "named_entity",
+      "x": -1.757,
+      "y": -0.788,
+      "z": -0.199
+    },
+    {
+      "id": "j)_ada_&_norm",
+      "label": "J) Ada & Norm",
+      "type": "named_entity",
+      "x": -1.212,
+      "y": 1.159,
+      "z": -1.772
+    }
+  ],
+  "edges": [
+    {
+      "from": "{_add",
+      "to": "norm",
+      "label": "related_to"
+    },
+    {
+      "from": "{_add",
+      "to": "feed_forward_network_decoder_add",
+      "label": "related_to"
+    },
+    {
+      "from": "{_add",
+      "to": "norm_multi-head_nx",
+      "label": "related_to"
+    },
+    {
+      "from": "norm",
+      "to": "feed_forward_network_decoder_add",
+      "label": "related_to"
+    },
+    {
+      "from": "norm",
+      "to": "norm_multi-head_nx",
+      "label": "related_to"
+    },
+    {
+      "from": "norm",
+      "to": "attention",
+      "label": "related_to"
+    },
+    {
+      "from": "feed_forward_network_decoder_add",
+      "to": "norm_multi-head_nx",
+      "label": "related_to"
+    },
+    {
+      "from": "feed_forward_network_decoder_add",
+      "to": "attention",
+      "label": "related_to"
+    },
+    {
+      "from": "feed_forward_network_decoder_add",
+      "to": "multi-head_add",
+      "label": "related_to"
+    },
+    {
+      "from": "norm_multi-head_nx",
+      "to": "attention",
+      "label": "related_to"
+    },
+    {
+      "from": "norm_multi-head_nx",
+      "to": "multi-head_add",
+      "label": "related_to"
+    },
+    {
+      "from": "norm_multi-head_nx",
+      "to": "self-attention",
+      "label": "related_to"
+    },
+    {
+      "from": "attention",
+      "to": "multi-head_add",
+      "label": "related_to"
+    },
+    {
+      "from": "attention",
+      "to": "self-attention",
+      "label": "related_to"
+    },
+    {
+      "from": "attention",
+      "to": "positional",
+      "label": "related_to"
+    },
+    {
+      "from": "multi-head_add",
+      "to": "self-attention",
+      "label": "related_to"
+    },
+    {
+      "from": "multi-head_add",
+      "to": "positional",
+      "label": "related_to"
+    },
+    {
+      "from": "multi-head_add",
+      "to": "output",
+      "label": "related_to"
+    },
+    {
+      "from": "self-attention",
+      "to": "positional",
+      "label": "related_to"
+    },
+    {
+      "from": "self-attention",
+      "to": "output",
+      "label": "related_to"
+    },
+    {
+      "from": "self-attention",
+      "to": ")_~_ge",
+      "label": "related_to"
+    },
+    {
+      "from": "positional",
+      "to": "output",
+      "label": "related_to"
+    },
+    {
+      "from": "positional",
+      "to": ")_~_ge",
+      "label": "related_to"
+    },
+    {
+      "from": "positional",
+      "to": "input_tokens_output_tokens",
+      "label": "related_to"
+    },
+    {
+      "from": "output",
+      "to": ")_~_ge",
+      "label": "related_to"
+    },
+    {
+      "from": "output",
+      "to": "input_tokens_output_tokens",
+      "label": "related_to"
+    },
+    {
+      "from": "output",
+      "to": "decoder",
+      "label": "related_to"
+    },
+    {
+      "from": ")_~_ge",
+      "to": "input_tokens_output_tokens",
+      "label": "related_to"
+    },
+    {
+      "from": ")_~_ge",
+      "to": "decoder",
+      "label": "related_to"
+    },
+    {
+      "from": ")_~_ge",
+      "to": "the_output_sequence",
+      "label": "related_to"
+    },
+    {
+      "from": "input_tokens_output_tokens",
+      "to": "decoder",
+      "label": "related_to"
+    },
+    {
+      "from": "input_tokens_output_tokens",
+      "to": "the_output_sequence",
+      "label": "related_to"
+    },
+    {
+      "from": "input_tokens_output_tokens",
+      "to": "outputs",
+      "label": "related_to"
+    },
+    {
+      "from": "decoder",
+      "to": "the_output_sequence",
+      "label": "related_to"
+    },
+    {
+      "from": "decoder",
+      "to": "outputs",
+      "label": "related_to"
+    },
+    {
+      "from": "decoder",
+      "to": "encoder",
+      "label": "related_to"
+    },
+    {
+      "from": "the_output_sequence",
+      "to": "outputs",
+      "label": "related_to"
+    },
+    {
+      "from": "the_output_sequence",
+      "to": "encoder",
+      "label": "related_to"
+    },
+    {
+      "from": "the_output_sequence",
+      "to": "the_input_sequence",
+      "label": "related_to"
+    },
+    {
+      "from": "outputs",
+      "to": "encoder",
+      "label": "related_to"
+    },
+    {
+      "from": "outputs",
+      "to": "the_input_sequence",
+      "label": "related_to"
+    },
+    {
+      "from": "outputs",
+      "to": "contextual_representations",
+      "label": "related_to"
+    },
+    {
+      "from": "encoder",
+      "to": "the_input_sequence",
+      "label": "related_to"
+    },
+    {
+      "from": "encoder",
+      "to": "contextual_representations",
+      "label": "related_to"
+    },
+    {
+      "from": "encoder",
+      "to": "1_1_‘_t_(j)_ada",
+      "label": "related_to"
+    },
+    {
+      "from": "the_input_sequence",
+      "to": "contextual_representations",
+      "label": "related_to"
+    },
+    {
+      "from": "the_input_sequence",
+      "to": "1_1_‘_t_(j)_ada",
+      "label": "related_to"
+    },
+    {
+      "from": "the_input_sequence",
+      "to": "add_&_norm",
+      "label": "related_to"
+    },
+    {
+      "from": "contextual_representations",
+      "to": "1_1_‘_t_(j)_ada",
+      "label": "related_to"
+    },
+    {
+      "from": "contextual_representations",
+      "to": "add_&_norm",
+      "label": "related_to"
+    },
+    {
+      "from": "contextual_representations",
+      "to": "multi-head_add_&_norm_self-attention_masked_multi-head_self-attention_positional_®_encoding",
+      "label": "related_to"
+    },
+    {
+      "from": "1_1_‘_t_(j)_ada",
+      "to": "add_&_norm",
+      "label": "related_to"
+    },
+    {
+      "from": "1_1_‘_t_(j)_ada",
+      "to": "multi-head_add_&_norm_self-attention_masked_multi-head_self-attention_positional_®_encoding",
+      "label": "related_to"
+    },
+    {
+      "from": "1_1_‘_t_(j)_ada",
+      "to": "input_tokens",
+      "label": "related_to"
+    },
+    {
+      "from": "add_&_norm",
+      "to": "multi-head_add_&_norm_self-attention_masked_multi-head_self-attention_positional_®_encoding",
+      "label": "related_to"
+    },
+    {
+      "from": "add_&_norm",
+      "to": "input_tokens",
+      "label": "related_to"
+    },
+    {
+      "from": "add_&_norm",
+      "to": "tokens",
+      "label": "related_to"
+    },
+    {
+      "from": "multi-head_add_&_norm_self-attention_masked_multi-head_self-attention_positional_®_encoding",
+      "to": "input_tokens",
+      "label": "related_to"
+    },
+    {
+      "from": "multi-head_add_&_norm_self-attention_masked_multi-head_self-attention_positional_®_encoding",
+      "to": "tokens",
+      "label": "related_to"
+    },
+    {
+      "from": "multi-head_add_&_norm_self-attention_masked_multi-head_self-attention_positional_®_encoding",
+      "to": "j)_ada_&_norm",
+      "label": "related_to"
+    },
+    {
+      "from": "input_tokens",
+      "to": "tokens",
+      "label": "related_to"
+    },
+    {
+      "from": "input_tokens",
+      "to": "j)_ada_&_norm",
+      "label": "related_to"
+    },
+    {
+      "from": "tokens",
+      "to": "j)_ada_&_norm",
+      "label": "related_to"
+    }
+  ],
+  "explanation": "This diagram represents a neural network architecture, specifically a transformer model, which is used for machine translation tasks. It consists of an encoder and a decoder, where the encoder generates contextual representations of the input sequence and the decoder generates the output sequence based on these representations. The architecture includes various components such as multi-head attention, positional encoding, and normalization.",
+  "quiz": [
+    {
+      "q": "What is the primary function of the encoder in the transformer model?",
+      "options": [
+        "Generating the output sequence",
+        "Generating contextual representations of the input sequence",
+        "Performing multi-head attention",
+        "Applying positional encoding"
+      ],
+      "answer": 1
+    },
+    {
+      "q": "What is the purpose of the positional encoding component in the transformer model?",
+      "options": [
+        "To normalize the input sequence",
+        "To generate contextual representations of the input sequence",
+        "To preserve the order of the input sequence",
+        "To perform multi-head attention"
+      ],
+      "answer": 2
+    },
+    {
+      "q": "What is the name of the neural network architecture being depicted in the diagram?",
+      "options": [
+        "Transformer Model",
+        "Feed Forward Network",
+        "Multi-Head Attention Network",
+        "Encoder-Decoder Network"
+      ],
+      "answer": 0
+    }
+  ]
+}
