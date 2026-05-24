@@ -25,7 +25,6 @@ const s = {
   },
   resetBtn: {
     fontSize: "12px",
-    color: "#555",
     background: "none",
     border: "1px solid #222",
     padding: "6px 14px",
@@ -169,12 +168,14 @@ const s = {
   }),
 };
 
+// ── QuizCard ──────────────────────────────────────────────
 function QuizCard({ quiz }) {
-  const [current, setCurrent] = useState(0);
-  const [selected, setSelected] = useState(null);
-  const [revealed, setRevealed] = useState(false);
-  const [score, setScore] = useState(0);
-  const [done, setDone] = useState(false);
+  const [current,     setCurrent]     = useState(0);
+  const [selected,    setSelected]    = useState(null);
+  const [revealed,    setRevealed]    = useState(false);
+  const [score,       setScore]       = useState(0);
+  const [done,        setDone]        = useState(false);
+  const [userAnswers, setUserAnswers] = useState(Array(quiz.length).fill(null));
 
   const q = quiz[current];
 
@@ -182,6 +183,12 @@ function QuizCard({ quiz }) {
     if (revealed) return;
     setSelected(idx);
     setRevealed(true);
+    // Track which answer the user chose for each question
+    setUserAnswers((prev) => {
+      const updated = [...prev];
+      updated[current] = idx;
+      return updated;
+    });
     if (idx === q.answer) setScore((s) => s + 1);
   };
 
@@ -195,23 +202,114 @@ function QuizCard({ quiz }) {
     }
   };
 
+  // ── Results screen with concept feedback ─────────────────
   if (done) {
+    const wrongQuestions  = quiz.filter((q, i) => userAnswers[i] !== q.answer);
+    const strongQuestions = quiz.filter((q, i) => userAnswers[i] === q.answer);
+
     return (
-      <div style={{ textAlign: "center", padding: "1rem 0" }}>
-        <div style={{ fontSize: "40px", marginBottom: "10px" }}>
-          {score === quiz.length ? "🎉" : score >= quiz.length / 2 ? "👍" : "📚"}
+      <div style={{ padding: "0.5rem 0" }}>
+
+        {/* Score header */}
+        <div style={{ textAlign: "center", marginBottom: "1.2rem" }}>
+          <div style={{ fontSize: "36px", marginBottom: "8px" }}>
+            {score === quiz.length ? "🎉" : score >= quiz.length / 2 ? "👍" : "📚"}
+          </div>
+          <div style={{ fontSize: "28px", fontWeight: "800", color: "#34d399" }}>
+            {score} / {quiz.length}
+          </div>
+          <div style={{ fontSize: "13px", color: "#666", marginTop: "4px" }}>
+            {score === quiz.length
+              ? "Perfect score! You understand this diagram fully."
+              : score >= quiz.length / 2
+              ? "Good understanding — review the highlighted concepts."
+              : "Keep exploring the AR view to strengthen your understanding."}
+          </div>
         </div>
-        <div style={{ fontSize: "22px", fontWeight: "800", color: "#34d399" }}>
-          {score} / {quiz.length}
-        </div>
-        <div style={{ fontSize: "13px", color: "#666", marginTop: "4px" }}>
-          {score === quiz.length ? "Perfect score!" :
-           score >= quiz.length / 2 ? "Good understanding" : "Keep exploring the AR view"}
-        </div>
+
+        {/* Strong concepts */}
+        {strongQuestions.length > 0 && (
+          <div style={{ marginBottom: "12px" }}>
+            <div style={{
+              fontSize: "11px", fontWeight: "700", color: "#34d399",
+              textTransform: "uppercase", letterSpacing: "1px", marginBottom: "8px"
+            }}>
+              ✓ Strong concepts
+            </div>
+            {strongQuestions.map((q, i) => (
+              <div key={i} style={{
+                display: "flex", alignItems: "flex-start", gap: "10px",
+                padding: "8px 12px", marginBottom: "6px", borderRadius: "8px",
+                background: "rgba(52,211,153,0.06)",
+                border: "1px solid rgba(52,211,153,0.2)"
+              }}>
+                <span style={{ color: "#34d399", fontSize: "13px", flexShrink: 0 }}>✓</span>
+                <span style={{ fontSize: "12px", color: "#9ca3af", lineHeight: "1.5" }}>
+                  {q.q}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Weak concepts — needs review */}
+        {wrongQuestions.length > 0 && (
+          <div>
+            <div style={{
+              fontSize: "11px", fontWeight: "700", color: "#f87171",
+              textTransform: "uppercase", letterSpacing: "1px", marginBottom: "8px"
+            }}>
+              ⚠ Review these concepts
+            </div>
+            {wrongQuestions.map((q, i) => (
+              <div key={i} style={{
+                padding: "10px 12px", marginBottom: "8px", borderRadius: "8px",
+                background: "rgba(239,68,68,0.06)",
+                border: "1px solid rgba(239,68,68,0.2)"
+              }}>
+                <div style={{
+                  display: "flex", alignItems: "flex-start",
+                  gap: "10px", marginBottom: "6px"
+                }}>
+                  <span style={{ color: "#f87171", fontSize: "13px", flexShrink: 0 }}>✗</span>
+                  <span style={{ fontSize: "12px", color: "#9ca3af", lineHeight: "1.5" }}>
+                    {q.q}
+                  </span>
+                </div>
+                <div style={{
+                  marginLeft: "22px", padding: "6px 10px",
+                  background: "rgba(52,211,153,0.08)",
+                  borderRadius: "6px",
+                  borderLeft: "2px solid #34d399"
+                }}>
+                  <span style={{ fontSize: "11px", color: "#34d399", fontWeight: "600" }}>
+                    Correct answer:&nbsp;
+                  </span>
+                  <span style={{ fontSize: "11px", color: "#ccc" }}>
+                    {q.options[q.answer]}
+                  </span>
+                </div>
+              </div>
+            ))}
+
+            {/* Tip to go back to AR */}
+            <div style={{
+              marginTop: "10px", padding: "10px 12px",
+              background: "rgba(167,139,250,0.08)",
+              border: "1px solid rgba(167,139,250,0.2)",
+              borderRadius: "8px",
+              fontSize: "12px", color: "#a78bfa", lineHeight: "1.6"
+            }}>
+              💡 Open the AR viewer and explore these nodes — use voice Q&amp;A
+              to ask about the concepts you missed.
+            </div>
+          </div>
+        )}
       </div>
     );
   }
 
+  // ── Active quiz question ──────────────────────────────────
   return (
     <div>
       <div style={{ fontSize: "11px", color: "#555", marginBottom: "10px" }}>
@@ -247,12 +345,14 @@ function QuizCard({ quiz }) {
   );
 }
 
+// ── ResultScreen ──────────────────────────────────────────
 export default function ResultScreen({ contract, onReset }) {
   if (!contract) return null;
 
   const components = contract.nodes.filter((n) => n.type === "component");
   const processes  = contract.nodes.filter((n) => n.type === "process");
   const data       = contract.nodes.filter((n) => n.type === "data");
+
   const openArViewer = () => {
     window.open("http://localhost:8000/ar/index.html", "_blank", "noopener,noreferrer");
   };
