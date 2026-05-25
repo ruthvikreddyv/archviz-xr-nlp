@@ -3,164 +3,452 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ArchViz-XR — VR Knowledge Graph</title>
+  <title>ArchViz-XR - Knowledge Galaxy</title>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { background: #080810; overflow: hidden; font-family: 'Segoe UI', Arial, sans-serif; }
-    canvas { display: block; }
+    :root {
+      color-scheme: dark;
+      --glass: rgba(7, 14, 32, 0.62);
+      --glass-strong: rgba(9, 18, 42, 0.78);
+      --line: rgba(126, 214, 255, 0.24);
+      --text: rgba(232, 246, 255, 0.92);
+      --muted: rgba(232, 246, 255, 0.54);
+      --cyan: #58f3de;
+      --blue: #4ca7ff;
+      --orange: #ffb34b;
+      --pink: #f36bd7;
+    }
 
-    #info {
-      position: absolute; top: 16px; left: 50%; transform: translateX(-50%);
-      color: rgba(255,255,255,0.4); font-size: 12px; letter-spacing: 0.08em;
-      text-transform: uppercase; pointer-events: none; white-space: nowrap;
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 50% 35%, rgba(34, 86, 132, 0.26), transparent 38%),
+        radial-gradient(circle at 20% 80%, rgba(88, 243, 222, 0.08), transparent 28%),
+        linear-gradient(180deg, #030711 0%, #070b18 52%, #03050c 100%);
+      font-family: Inter, "Segoe UI", Arial, sans-serif;
+      color: var(--text);
     }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background:
+        linear-gradient(rgba(255,255,255,0.024) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.018) 1px, transparent 1px);
+      background-size: 48px 48px;
+      mask-image: radial-gradient(circle at center, black 0%, transparent 74%);
+      opacity: 0.42;
+      z-index: 1;
+    }
+
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background: radial-gradient(circle at center, transparent 45%, rgba(0,0,0,0.58) 100%);
+      z-index: 2;
+    }
+
+    canvas { display: block; position: fixed; inset: 0; z-index: 0; }
+
+    .hud {
+      position: fixed;
+      z-index: 5;
+      border: 1px solid var(--line);
+      background: linear-gradient(135deg, var(--glass), rgba(11, 26, 56, 0.34));
+      box-shadow: 0 18px 60px rgba(0, 0, 0, 0.36), inset 0 1px 0 rgba(255,255,255,0.08);
+      backdrop-filter: blur(18px);
+    }
+
+    #top-bar {
+      top: 18px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: min(720px, calc(100vw - 32px));
+      min-height: 46px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 18px;
+      color: var(--muted);
+      font-size: 12px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+
+    #top-bar .signal {
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      background: var(--cyan);
+      box-shadow: 0 0 18px var(--cyan);
+    }
+
     #stats {
-      position: absolute; top: 16px; left: 20px;
-      color: rgba(255,255,255,0.4); font-size: 11px; pointer-events: none;
+      top: 18px;
+      left: 18px;
+      min-width: 170px;
+      border-radius: 8px;
+      padding: 12px 14px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.6;
     }
-    #tooltip {
-      position: absolute; display: none;
-      background: rgba(10,10,25,0.88); border: 1px solid rgba(100,160,255,0.25);
-      border-radius: 8px; padding: 8px 14px; color: #fff; font-size: 13px;
-      pointer-events: none; max-width: 220px; backdrop-filter: blur(6px);
+
+    #stats strong {
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 700;
     }
-    #tooltip .type-tag {
-      display: inline-block; font-size: 10px; text-transform: uppercase;
-      letter-spacing: 0.1em; padding: 2px 8px; border-radius: 10px; margin-bottom: 4px;
-    }
-    #info-panel {
-      display: none; position: absolute; top: 50%; left: 20px;
-      transform: translateY(-50%);
-      background: rgba(10,10,30,0.92); border: 1px solid rgba(100,160,255,0.3);
-      border-radius: 12px; padding: 16px 20px; min-width: 200px;
-      backdrop-filter: blur(8px); color: #fff;
-    }
-    #info-panel .panel-title {
-      font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em;
-      color: rgba(100,160,255,0.6); margin-bottom: 10px;
-    }
-    #info-name {
-      font-size: 15px; font-weight: 600; margin-bottom: 8px;
-      color: #e8eeff; line-height: 1.3;
-    }
-    #info-type {
-      display: inline-block; font-size: 10px; text-transform: uppercase;
-      letter-spacing: 0.1em; padding: 3px 10px; border-radius: 12px;
-      margin-bottom: 8px; color: #fff;
-    }
-    #info-id {
-      font-size: 11px; color: rgba(255,255,255,0.35);
-      margin-bottom: 6px; word-break: break-all;
-    }
-    #info-connections { font-size: 12px; color: rgba(100,200,255,0.7); }
-    #info-close {
-      position: absolute; top: 10px; right: 12px;
-      background: none; border: none; color: rgba(255,255,255,0.4);
-      font-size: 16px; cursor: pointer;
-    }
-    #info-close:hover { color: #fff; }
-    #loading {
-      position: absolute; inset: 0; display: flex; flex-direction: column;
-      align-items: center; justify-content: center; background: #080810;
-      color: rgba(255,255,255,0.6); font-size: 14px; letter-spacing: 0.1em;
-      gap: 16px; transition: opacity 0.5s;
-    }
-    .dot-row { display: flex; gap: 8px; }
-    .dot {
-      width: 6px; height: 6px; border-radius: 50%; background: #378ADD;
-      animation: pulse 1.2s ease-in-out infinite;
-    }
-    .dot:nth-child(2) { animation-delay: 0.2s; }
-    .dot:nth-child(3) { animation-delay: 0.4s; }
-    @keyframes pulse {
-      0%,100% { opacity:0.2; transform:scale(0.8); }
-      50%      { opacity:1;   transform:scale(1.2); }
-    }
+
     #legend {
-      position: absolute; bottom: 90px; left: 20px;
-      display: flex; flex-direction: column; gap: 6px;
+      left: 18px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 190px;
+      border-radius: 8px;
+      padding: 16px;
+      display: none;
     }
-    .legend-item { display:flex; align-items:center; gap:8px; font-size:11px; color:rgba(255,255,255,0.45); }
-    .legend-dot  { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
-    #bottom-bar {
-      position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
-      display: flex; gap: 12px; align-items: center;
+
+    .panel-title {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      color: rgba(126, 214, 255, 0.78);
+      margin-bottom: 13px;
     }
-    .bar-btn {
-      background: #1a1a3a; border: 1px solid rgba(100,160,255,0.3);
-      color: #fff; font-size: 13px; padding: 10px 20px; border-radius: 24px;
-      cursor: pointer; transition: all 0.2s; letter-spacing: 0.04em; white-space: nowrap;
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-height: 28px;
+      font-size: 12px;
+      color: var(--muted);
     }
-    .bar-btn:hover    { background: #2a2a5a; border-color: rgba(100,160,255,0.6); }
-    .bar-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-    #voice-status {
-      position: absolute; bottom: 70px; left: 50%; transform: translateX(-50%);
-      font-size: 12px; color: rgba(255,255,255,0.45); pointer-events: none; white-space: nowrap;
+
+    .legend-dot {
+      width: 11px;
+      height: 11px;
+      border-radius: 999px;
+      box-shadow: 0 0 16px currentColor;
+      flex: 0 0 auto;
     }
+
+    #info-panel {
+      top: 96px;
+      right: 18px;
+      width: min(360px, calc(100vw - 36px));
+      max-height: calc(100vh - 190px);
+      overflow: hidden;
+      border-radius: 8px;
+      padding: 20px;
+      display: none;
+    }
+
+    #info-close {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      border: 1px solid rgba(126, 214, 255, 0.28);
+      background: rgba(255,255,255,0.04);
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    #info-close:hover {
+      color: white;
+      border-color: rgba(126, 214, 255, 0.62);
+      box-shadow: 0 0 24px rgba(126, 214, 255, 0.18);
+    }
+
+    #info-name {
+      padding-right: 30px;
+      font-size: 22px;
+      line-height: 1.15;
+      font-weight: 750;
+      color: white;
+      text-shadow: 0 0 22px rgba(126, 214, 255, 0.25);
+      margin-bottom: 12px;
+    }
+
+    #info-type {
+      display: inline-flex;
+      align-items: center;
+      min-height: 24px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: white;
+      margin-bottom: 16px;
+    }
+
+    #info-description {
+      color: rgba(232, 246, 255, 0.72);
+      font-size: 13px;
+      line-height: 1.65;
+      margin-bottom: 16px;
+    }
+
+    #info-connections {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      max-height: 152px;
+      overflow: auto;
+      padding-right: 4px;
+    }
+
+    .connection-pill {
+      border: 1px solid rgba(126, 214, 255, 0.22);
+      background: rgba(126, 214, 255, 0.07);
+      color: rgba(232, 246, 255, 0.78);
+      border-radius: 999px;
+      padding: 6px 9px;
+      font-size: 11px;
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    #tooltip {
+      position: fixed;
+      z-index: 8;
+      display: none;
+      max-width: 260px;
+      pointer-events: none;
+      border-radius: 8px;
+      padding: 10px 12px;
+      border: 1px solid rgba(126, 214, 255, 0.3);
+      background: rgba(4, 11, 24, 0.84);
+      box-shadow: 0 18px 50px rgba(0,0,0,0.36);
+      backdrop-filter: blur(16px);
+    }
+
+    #tt-type {
+      display: inline-flex;
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-size: 9px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      margin-bottom: 7px;
+    }
+
+    #tt-label {
+      font-size: 13px;
+      font-weight: 700;
+      color: white;
+      line-height: 1.25;
+    }
+
+    #tt-id {
+      margin-top: 5px;
+      font-size: 10px;
+      color: rgba(232, 246, 255, 0.4);
+    }
+
+    #tt-description {
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px solid rgba(126, 214, 255, 0.16);
+      color: rgba(232, 246, 255, 0.68);
+      font-size: 11px;
+      line-height: 1.45;
+    }
+
     #voice-answer-box {
-      display: none; position: absolute; bottom: 110px; right: 20px;
-      background: rgba(10,10,30,0.9); border: 1px solid rgba(100,160,255,0.25);
-      border-radius: 10px; padding: 12px 16px; max-width: 300px; backdrop-filter: blur(6px);
+      display: none;
+      right: 18px;
+      bottom: 86px;
+      width: min(360px, calc(100vw - 36px));
+      border-radius: 8px;
+      padding: 16px;
     }
-    .answer-label {
-      font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em;
-      color: rgba(100,160,255,0.6); margin-bottom: 6px;
+
+    #voice-answer {
+      color: rgba(232, 246, 255, 0.8);
+      font-size: 13px;
+      line-height: 1.55;
     }
-    #voice-answer { font-size: 13px; color: #e8eeff; line-height: 1.5; }
+
+    #bottom-bar {
+      position: fixed;
+      z-index: 6;
+      left: 50%;
+      bottom: 22px;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      width: min(520px, calc(100vw - 36px));
+      justify-content: center;
+    }
+
+    .bar-btn {
+      min-width: 188px;
+      height: 48px;
+      border-radius: 999px;
+      border: 1px solid rgba(126, 214, 255, 0.28);
+      background: linear-gradient(135deg, rgba(44, 69, 148, 0.62), rgba(11, 25, 56, 0.7));
+      color: white;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      cursor: pointer;
+      transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+      box-shadow: 0 16px 45px rgba(0,0,0,0.38), inset 0 1px 0 rgba(255,255,255,0.12);
+      backdrop-filter: blur(14px);
+    }
+
+    .bar-btn:hover:not(:disabled) {
+      transform: translateY(-1px);
+      border-color: rgba(126, 214, 255, 0.66);
+      box-shadow: 0 18px 55px rgba(50, 146, 255, 0.16), inset 0 1px 0 rgba(255,255,255,0.18);
+    }
+
+    .bar-btn:disabled {
+      opacity: 0.48;
+      cursor: not-allowed;
+      color: rgba(232, 246, 255, 0.48);
+      background: rgba(18, 25, 46, 0.52);
+    }
+
+    #voice-status {
+      position: fixed;
+      z-index: 5;
+      bottom: 84px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: rgba(232, 246, 255, 0.58);
+      font-size: 12px;
+      text-align: center;
+      width: min(560px, calc(100vw - 36px));
+    }
+
     #hint {
-      position: absolute; bottom: 70px; right: 20px;
-      font-size: 11px; color: rgba(255,255,255,0.3); pointer-events: none;
+      position: fixed;
+      z-index: 5;
+      right: 22px;
+      bottom: 28px;
+      color: rgba(232, 246, 255, 0.34);
+      font-size: 11px;
+      pointer-events: none;
+    }
+
+    #loading {
+      position: fixed;
+      inset: 0;
+      z-index: 20;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 18px;
+      background: #030711;
+      color: rgba(232, 246, 255, 0.74);
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      transition: opacity 0.55s ease;
+    }
+
+    .dot-row { display: flex; gap: 9px; }
+    .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--cyan);
+      box-shadow: 0 0 18px var(--cyan);
+      animation: loaderPulse 1.2s ease-in-out infinite;
+    }
+    .dot:nth-child(2) { animation-delay: 0.18s; }
+    .dot:nth-child(3) { animation-delay: 0.36s; }
+
+    @keyframes loaderPulse {
+      0%, 100% { opacity: 0.25; transform: scale(0.75); }
+      50% { opacity: 1; transform: scale(1.25); }
+    }
+
+    @media (max-width: 760px) {
+      #legend { display: none !important; }
+      #stats { left: 12px; top: 78px; min-width: 130px; padding: 10px 12px; }
+      #info-panel { left: 12px; right: 12px; top: auto; bottom: 146px; width: auto; max-height: 42vh; }
+      #top-bar { top: 12px; min-height: 42px; font-size: 10px; letter-spacing: 0.1em; }
+      #bottom-bar { bottom: 16px; gap: 8px; }
+      .bar-btn { min-width: 0; flex: 1; height: 46px; font-size: 12px; padding: 0 10px; }
+      #hint { display: none; }
     }
   </style>
 </head>
 <body>
-
   <div id="loading">
-    <div>ARCHVIZ — XR</div>
+    <div>ARCHVIZ XR KNOWLEDGE GALAXY</div>
     <div class="dot-row">
       <div class="dot"></div><div class="dot"></div><div class="dot"></div>
     </div>
   </div>
 
-  <div id="info">Drag to orbit · Scroll to zoom · Click a node to inspect</div>
-  <div id="stats" style="display:none">
-    Nodes: <span id="node-count">0</span> &nbsp;|&nbsp; Edges: <span id="edge-count">0</span>
+  <div id="top-bar" class="hud">
+    <span class="signal"></span>
+    <span>Drag to orbit · Scroll to zoom · Click a node to inspect</span>
+  </div>
+
+  <div id="stats" class="hud" style="display:none">
+    <div><strong id="node-count">0</strong> nodes</div>
+    <div><strong id="edge-count">0</strong> relationships</div>
+  </div>
+
+  <div id="legend" class="hud">
+    <div class="panel-title">Knowledge Layers</div>
+    <div class="legend-item"><span class="legend-dot" style="color:#58f3de;background:#58f3de"></span>Component</div>
+    <div class="legend-item"><span class="legend-dot" style="color:#4ca7ff;background:#4ca7ff"></span>Layer</div>
+    <div class="legend-item"><span class="legend-dot" style="color:#ffb34b;background:#ffb34b"></span>Process</div>
+    <div class="legend-item"><span class="legend-dot" style="color:#f36bd7;background:#f36bd7"></span>Named Entity</div>
+    <div class="legend-item"><span class="legend-dot" style="color:#f5fbff;background:#f5fbff"></span>Flow Particle</div>
   </div>
 
   <div id="tooltip">
-    <div class="type-tag" id="tt-type"></div>
-    <div id="tt-label" style="font-weight:600;margin-top:2px"></div>
-    <div id="tt-id"    style="font-size:11px;color:rgba(255,255,255,0.4);margin-top:2px"></div>
+    <div id="tt-type"></div>
+    <div id="tt-label"></div>
+    <div id="tt-id"></div>
+    <div id="tt-description"></div>
   </div>
 
-  <div id="info-panel">
-    <button id="info-close" onclick="resetHighlight()">✕</button>
-    <div class="panel-title">Selected Node</div>
+  <div id="info-panel" class="hud">
+    <button id="info-close" onclick="resetHighlight()" aria-label="Close">x</button>
+    <div class="panel-title">Selected Concept</div>
     <div id="info-name"></div>
     <div id="info-type"></div>
-    <div id="info-id"></div>
+    <div id="info-description"></div>
+    <div class="panel-title">Connected Nodes</div>
     <div id="info-connections"></div>
   </div>
 
-  <div id="legend" style="display:none">
-    <div class="legend-item"><div class="legend-dot" style="background:#5DCAA5"></div>Component</div>
-    <div class="legend-item"><div class="legend-dot" style="background:#378ADD"></div>Layer</div>
-    <div class="legend-item"><div class="legend-dot" style="background:#EF9F27"></div>Process</div>
-    <div class="legend-item"><div class="legend-dot" style="background:#E06FBF"></div>Named Entity</div>
-    <div class="legend-item"><div class="legend-dot" style="background:#fff;opacity:0.5"></div>Flow Pulse</div>
-  </div>
-
-  <div id="voice-answer-box">
-    <div class="answer-label">Answer</div>
+  <div id="voice-answer-box" class="hud">
+    <div class="panel-title">Tutor Response</div>
     <div id="voice-answer"></div>
   </div>
 
-  <div id="voice-status">Press 🎤 Ask and speak a question</div>
-  <div id="hint">Press Esc to deselect</div>
+  <div id="voice-status">Ask and speak a question</div>
+  <div id="hint">Esc to deselect</div>
 
   <div id="bottom-bar">
-    <button class="bar-btn" id="mic-btn" onclick="toggleMic()">🎤 Ask</button>
-    <button class="bar-btn" id="vr-btn">⌛ Checking VR...</button>
+    <button class="bar-btn" id="mic-btn" onclick="toggleMic()">Ask and speak a question</button>
+    <button class="bar-btn" id="vr-btn">Checking XR...</button>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>

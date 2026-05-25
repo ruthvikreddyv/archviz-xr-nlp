@@ -7,12 +7,17 @@ from groq import Groq
 
 load_dotenv()
 
-client = Groq(api_key=os.getenv("GROQ_API_KEY"))
-
 MODEL = "llama-3.1-8b-instant"
-MAX_CONCEPTS = 18
-MAX_EDGES = 24
+MAX_CONCEPTS = 45
+MAX_EDGES = 90
 VALID_TYPES = {"component", "process", "data", "named_entity"}
+
+
+def get_client() -> Groq:
+    api_key = os.getenv("GROQ_API_KEY")
+    if not api_key:
+        raise ValueError("GROQ_API_KEY is not set")
+    return Groq(api_key=api_key)
 
 
 def make_id(text: str) -> str:
@@ -62,10 +67,43 @@ def fallback_result(entities: list, relations: list, reason: str = "") -> dict:
         edge_seen.add(key)
         edges.append({"from": src, "to": tgt, "label": label})
 
-    if not edges:
+    if len(edges) < min(MAX_EDGES, max(0, len(nodes) - 1)):
         for i in range(max(0, len(nodes) - 1)):
-            edges.append({"from": nodes[i]["id"], "to": nodes[i + 1]["id"], "label": "related_to"})
-            if len(edges) >= min(MAX_EDGES, 12):
+            if len(edges) >= MAX_EDGES:
+                break
+            key = (nodes[i]["id"], nodes[i + 1]["id"], "flows_to")
+            if key not in edge_seen:
+                edge_seen.add(key)
+                edges.append({"from": nodes[i]["id"], "to": nodes[i + 1]["id"], "label": "flows_to"})
+
+        keyword_groups = [
+            ("attention", "attends_to"),
+            ("encoder", "encodes_for"),
+            ("decoder", "decodes_from"),
+            ("token", "passes_token_to"),
+            ("embedding", "represents"),
+            ("norm", "normalizes"),
+            ("feed", "transforms"),
+            ("layer", "stacks_with"),
+            ("output", "produces"),
+            ("input", "feeds"),
+        ]
+        labels = [(node["id"], node["label"].lower()) for node in nodes]
+        for keyword, label in keyword_groups:
+            matching = [node_id for node_id, text in labels if keyword in text]
+            for src in matching:
+                for tgt, text in labels:
+                    key = (src, tgt, label)
+                    if src == tgt or key in edge_seen:
+                        continue
+                    if keyword in text or len(edges) >= MAX_EDGES:
+                        continue
+                    edge_seen.add(key)
+                    edges.append({"from": src, "to": tgt, "label": label})
+                    break
+                if len(edges) >= MAX_EDGES:
+                    break
+            if len(edges) >= MAX_EDGES:
                 break
 
     explanation = "This diagram has been converted into a knowledge graph of extracted concepts and relationships."
@@ -197,6 +235,19 @@ def validate_result(result: dict, entities: list, relations: list) -> dict:
             })
 
     fallback = fallback_result(entities, relations)
+    if len(edges) < min(MAX_EDGES, max(0, len(nodes) - 1)):
+        for edge in fallback["edges"]:
+            src = edge["from"]
+            tgt = edge["to"]
+            label = edge["label"]
+            key = (src, tgt, label)
+            if src == tgt or src not in node_ids or tgt not in node_ids or key in seen_edges:
+                continue
+            seen_edges.add(key)
+            edges.append(edge)
+            if len(edges) >= MAX_EDGES:
+                break
+
     while len(quiz) < 3:
         quiz.append(fallback["quiz"][len(quiz)])
 
@@ -226,12 +277,13 @@ def generate(entities: list, relations: list) -> dict:
     ]
 
     try:
+        client = get_client()
         try:
             response = client.chat.completions.create(
                 model=MODEL,
                 messages=messages,
                 temperature=0.1,
-                max_tokens=4000,
+                max_tokens=6000,
                 response_format={"type": "json_object"},
             )
         except TypeError:
@@ -239,7 +291,7 @@ def generate(entities: list, relations: list) -> dict:
                 model=MODEL,
                 messages=messages,
                 temperature=0.1,
-                max_tokens=4000,
+                max_tokens=6000,
             )
     except Exception as e:
         print(f"[LLM] Warning: Groq call failed: {e}")

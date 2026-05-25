@@ -15,13 +15,13 @@ import os
 import sys
 from pathlib import Path
 
-from main import run_pipeline
-
 PROJECT_ROOT = Path(__file__).resolve().parent
 CACHE_PATH = PROJECT_ROOT / "output" / "demo_cache.json"
 
 
 def precache(image_path: str) -> None:
+    from main import run_pipeline
+
     print("\n-- Pre-caching demo diagram --------")
     print(f"   Input : {image_path}")
     print(f"   Output: {CACHE_PATH}")
