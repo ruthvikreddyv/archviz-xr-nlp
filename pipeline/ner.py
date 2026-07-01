@@ -52,9 +52,19 @@ def is_valid_entity(text: str) -> bool:
         return False
     if not any(c.isalpha() for c in text):
         return False
-    # Skip pure article phrases
     if text in {"the", "a", "an", "this", "these", "those"}:
         return False
+
+    # NEW — skip all-caps titles like "THE_TRANSFORMER_ARCHITECTURE"
+    # These are diagram titles, not concept nodes
+    if text.replace("_", "").isupper() and len(text.replace("_","")) > 8:
+        return False
+
+    # NEW — skip generic single words that add no meaning
+    if text.lower() in {"architecture", "overview", "diagram",
+                        "figure", "model", "system", "framework"}:
+        return False
+
     return True
 
 
