@@ -1,158 +1,75 @@
-"""
-ArchViz-XR — NLP Pipeline v2
-Phase 2: Semantic edges + node type classification from LLM
+import json, os, sys
+from pipeline.graph import build_graph, build_graph_from_contract, has_cycles, get_stats
+from pipeline.graph_cleaner import clean_graph
+from pipeline.ocr import extract_with_layout, pdf_has_text_layer
+from pipeline.spatial import apply_layout, graph_to_contract_nodes, graph_to_contract_edges
 
-Run:
-    python main.py <path_to_image_or_pdf>
-"""
+def _is_image(p): return os.path.splitext(p)[1].lower() in {".png",".jpg",".jpeg",".bmp",".tiff"}
+def _is_pdf(p): return os.path.splitext(p)[1].lower()==".pdf"
 
-import json
-import sys
-import os
-from pipeline.ocr import extract
-from pipeline.ner import extract as ner_extract
-from pipeline.graph import build_graph
-from pipeline.spatial import map_spatial_coords
-from pipeline.llm import generate
+def _run_vlm_path(path):
+    from pipeline.vlm import extract_from_file
+    print("Step 1/3 — VLM extraction (image → knowledge graph)")
+    contract=extract_from_file(path)
+    print(f"           OK {len(contract.get('nodes',[]))} nodes, {len(contract.get('edges',[]))} edges\n")
+    diagram_type=contract.get("diagram_type","unknown")
+    print("Step 2/3 — Graph construction + cycle check")
+    G=build_graph_from_contract(contract)
+    stats=get_stats(G)
+    if stats["has_cycles"] and diagram_type in ("hierarchical","flowchart"):
+        print("           WARNING: Cycles in hierarchical diagram — possible extraction error")
+    print(f"           OK {stats}\n")
+    print(f"Step 3/3 — Spatial layout (type={diagram_type})")
+    G,ocr_matches=apply_layout(G,diagram_type,[])
+    print(f"           OK {ocr_matches} OCR overrides\n")
+    return clean_graph({"nodes":graph_to_contract_nodes(G),"edges":graph_to_contract_edges(G),
+                        "explanation":contract.get("explanation",""),"quiz":contract.get("quiz",[]),
+                        "diagram_type":diagram_type,"layout":"vlm","pipeline":"vlm"})
 
-
-def run_pipeline(file_path: str) -> dict:
-
-    print(f"\n{'='*45}")
-    print(f"  ArchViz-XR NLP Pipeline v2")
-    print(f"  Input: {file_path}")
-    print(f"{'='*45}\n")
-
-    # ── Step 1: OCR ──────────────────────────────
-    print("Step 1/5 - OCR extraction")
-    text = extract(file_path)
-    print(f"           OK {len(text.split())} words extracted\n")
-
-    # ── Step 2: NER ──────────────────────────────
-    print("Step 2/5 - Entity + relation extraction")
-    ner_result = ner_extract(text)
-    entities = ner_result["entities"]
-    relations = ner_result["relations"]
+def _run_text_path(path):
+    from pipeline.ner import extract as ner_extract
+    from pipeline.llm import generate
+    print("Step 1/4 — OCR extraction (text-layer PDF)")
+    ocr=extract_with_layout(path); text=ocr["text"]; blocks=ocr.get("layout_blocks",[])
+    print(f"           OK {len(text.split())} words\n")
+    print("Step 2/4 — NER entity + relation extraction")
+    ner=ner_extract(text); entities=ner["entities"]; relations=ner["relations"]
     print(f"           OK {len(entities)} entities, {len(relations)} relations\n")
-
-    if not entities:
-        raise ValueError("No entities found. Check image quality.")
-
-    # ── Step 3: LLM — semantic enrichment ────────
-    # Phase 2: LLM now returns nodes WITH types AND semantic edges
-    print("Step 3/5 - LLM semantic enrichment (Groq)")
-    llm_result = generate(entities, relations)
+    if len(entities)<2: raise ValueError("Not enough components detected. Upload a clearer diagram.")
+    print("Step 3/4 — LLM semantic enrichment (Groq)")
+    llm=generate(entities,relations,ocr_text=text)
     print()
+    print("Step 4/4 — Graph + spatial layout")
+    G=build_graph(llm["nodes"],llm["edges"])
+    G,matched=apply_layout(G,"unknown",blocks)
+    print(f"           OK {get_stats(G)}, {matched} OCR overrides\n")
+    return clean_graph({"nodes":graph_to_contract_nodes(G),"edges":graph_to_contract_edges(G),
+                        "explanation":llm.get("explanation",""),"quiz":llm.get("quiz",[]),
+                        "diagram_type":"unknown","layout":"diagram" if matched>=2 else "graph","pipeline":"text"})
 
-    # Use LLM-enriched nodes and edges
-    llm_nodes = llm_result["nodes"]   # typed nodes from LLM
-    llm_edges = llm_result["edges"]   # semantic edges from LLM
+def run_pipeline(path):
+    print(f"\n{'='*50}\n  ArchViz-XR Pipeline v3\n  Input: {path}")
+    if _is_image(path):
+        print("  Route : VLM (image)"); print(f"{'='*50}\n"); return _run_vlm_path(path)
+    if _is_pdf(path):
+        if pdf_has_text_layer(path):
+            print("  Route : OCR → NER → LLM (text-layer PDF)"); print(f"{'='*50}\n"); return _run_text_path(path)
+        else:
+            print("  Route : VLM (scanned PDF)"); print(f"{'='*50}\n"); return _run_vlm_path(path)
+    raise ValueError(f"Unsupported file type: {os.path.splitext(path)[1]}")
 
-    # ── Step 4: Spatial mapping ───────────────────
-    print("Step 4/5 - Building graph + mapping 3D coordinates")
+def save_contract(c,out="output/contract.json"):
+    os.makedirs("output",exist_ok=True)
+    with open(out,"w",encoding="utf-8") as f: json.dump(c,f,indent=2,ensure_ascii=False)
+    print(f"Contract saved → {out}")
 
-    # Build graph from LLM's richer output
-    import networkx as nx
-    G = nx.DiGraph()
+def print_summary(c):
+    types={}
+    for n in c["nodes"]: t=n.get("type","?"); types[t]=types.get(t,0)+1
+    print(f"\n{'='*50}\n  Pipeline: {c.get('pipeline','?')}  Type: {c.get('diagram_type','?')}\n  Nodes: {len(c['nodes'])}  Edges: {len(c['edges'])}\n{'='*50}\n")
 
-    for node in llm_nodes:
-        node_id = node["id"].replace(" ", "_").lower()
-        G.add_node(node_id, label=node["label"], type=node["type"])
-
-    for edge in llm_edges:
-        src = edge["from"].replace(" ", "_").lower()
-        tgt = edge["to"].replace(" ", "_").lower()
-        if src in G and tgt in G:
-            G.add_edge(src, tgt, label=edge["label"])
-
-    # If LLM gave no edges, fall back to proximity
-    if G.number_of_edges() == 0:
-        print("           [fallback] Using proximity edges")
-        node_list = list(G.nodes())
-        for i in range(len(node_list)):
-            for j in range(i + 1, len(node_list)):
-                if abs(i - j) <= 2:
-                    G.add_edge(node_list[i], node_list[j], label="related_to")
-
-    # Assign 3D coordinates
-    from pipeline.spatial import map_spatial_coords
-    G = map_spatial_coords(G)
-
-    # Build final nodes list with coordinates
-    final_nodes = []
-    for node_id, data in G.nodes(data=True):
-        final_nodes.append({
-            "id": node_id,
-            "label": data.get("label", node_id),
-            "type": data.get("type", "component"),
-            "x": data.get("x", 0.0),
-            "y": data.get("y", 0.0),
-            "z": data.get("z", 0.0)
-        })
-
-    # Build final edges list
-    final_edges = []
-    for src, tgt, data in G.edges(data=True):
-        final_edges.append({
-            "from": src,
-            "to": tgt,
-            "label": data.get("label", "")
-        })
-
-    print(f"           OK {G.number_of_nodes()} nodes, {G.number_of_edges()} edges\n")
-
-    # ── Step 5: Summary ───────────────────────────
-    print("Step 5/5 - Assembling contract")
-
-    contract = {
-        "nodes": final_nodes,
-        "edges": final_edges,
-        "explanation": llm_result["explanation"],
-        "quiz": llm_result["quiz"]
-    }
-
-    print(f"           OK Contract ready\n")
-    return contract
-
-
-def save_contract(contract: dict, output_path: str = "output/contract.json"):
-    os.makedirs("output", exist_ok=True)
-    with open(output_path, "w", encoding="utf-8") as f:
-        json.dump(contract, f, indent=2, ensure_ascii=False)
-    print(f"OK Contract saved -> {output_path}")
-
-
-def print_summary(contract: dict):
-    # Count node types
-    types = {}
-    for n in contract["nodes"]:
-        t = n.get("type", "unknown")
-        types[t] = types.get(t, 0) + 1
-
-    print(f"\n{'='*45}")
-    print(f"  Pipeline Complete - Summary")
-    print(f"{'='*45}")
-    print(f"  Nodes      : {len(contract['nodes'])}")
-    for t, count in types.items():
-        print(f"    [{t:10s}] {count}")
-    print(f"  Edges      : {len(contract['edges'])}")
-    print(f"  Explanation: {contract['explanation'][:80]}...")
-    print(f"  Quiz Qs    : {len(contract['quiz'])}")
-    print(f"{'='*45}\n")
-
-
-if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print("Usage: python main.py <path_to_image_or_pdf>")
-        sys.exit(1)
-
-    file_path = sys.argv[1]
-
-    if not os.path.exists(file_path):
-        print(f"Error: File not found - {file_path}")
-        sys.exit(1)
-
-    contract = run_pipeline(file_path)
-    save_contract(contract)
-    print_summary(contract)
-    print("Hand output/contract.json to Ro and As.")
+if __name__=="__main__":
+    if len(sys.argv)<2: print("Usage: python main.py <image_or_pdf>"); sys.exit(1)
+    p=sys.argv[1]
+    if not os.path.exists(p): print(f"File not found: {p}"); sys.exit(1)
+    c=run_pipeline(p); save_contract(c); print_summary(c)
