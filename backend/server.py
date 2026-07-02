@@ -31,7 +31,7 @@ except Exception:
     answer_question = None
 
 try:
-    from backend.service.graph_cleaner import clean_graph
+    from pipeline.graph_cleaner import clean_graph
 except Exception:
 
     def clean_graph(contract: dict) -> dict:
