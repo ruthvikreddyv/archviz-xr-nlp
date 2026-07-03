@@ -9,8 +9,8 @@ load_dotenv()
 VISION_MODELS = [
     m for m in [
         os.getenv("ARCHVIZ_VLM_MODEL",""),
-        "llama-3.2-11b-vision-preview",
-        "llama-3.2-90b-vision-preview",
+        "meta-llama/llama-4-scout-17b-16e-instruct",
+        "meta-llama/llama-4-maverick-17b-128e-instruct",
     ] if m
 ]
 MAX_RETRIES = 3
