@@ -1,14 +1,3 @@
-"""
-precache_demo.py
-Ru's demo safety net - run this ONCE before the hackathon presentation.
-
-Saves a pre-processed version of the Transformer diagram so the live demo
-never runs OCR or calls the LLM during the presentation.
-Instant load = zero risk of failure on stage.
-
-Run:
-    python precache_demo.py transformer.jpeg
-"""
 
 import json
 import os
@@ -29,7 +18,6 @@ def precache(image_path: str) -> None:
 
     contract = run_pipeline(image_path)
 
-    # Save to dedicated cache file - never overwrite this.
     CACHE_PATH.parent.mkdir(parents=True, exist_ok=True)
     with open(CACHE_PATH, "w", encoding="utf-8") as f:
         json.dump(contract, f, indent=2, ensure_ascii=False)
@@ -54,6 +42,7 @@ def load_cache() -> dict:
         )
     with open(CACHE_PATH, "r", encoding="utf-8") as f:
         return json.load(f)
+
 
 
 if __name__ == "__main__":
