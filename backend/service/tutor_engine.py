@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 from groq import Groq
 load_dotenv()
 
+
 MODEL="llama-3.1-8b-instant"
 
 _SYS="""You are an adaptive AI tutor explaining academic diagrams in AR.
