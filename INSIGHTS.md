@@ -5,7 +5,7 @@
 This document records real problems encountered during development and how they were solved.
 These insights are valuable for anyone extending this framework.
 
----
+-
 
 ## Insight 1 — OCR Extracts Very Little from Small Diagram Images
 
