@@ -4,8 +4,6 @@ ArchViz-XR FastAPI backend.
 Run from the project root:
     uvicorn backend.server:app --reload --port 8000
 """
-
-
 import json
 import shutil
 import sys
