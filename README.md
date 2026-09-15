@@ -8,8 +8,6 @@ ArchViz-XR converts static research paper diagrams into intelligent, immersive A
 
 Built for VISIONARY Hackathon 2.0 · Theme: Education + Open Innovation
 
-
-
 ## What It Does
 
 1. **Upload** a diagram image (Transformer architecture, neural network, blockchain flow, anatomy chart)
