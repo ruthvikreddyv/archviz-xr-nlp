@@ -4,7 +4,7 @@ REPO = os.path.dirname(os.path.abspath(__file__))
 
 files = {}
 
-# ── 1. pipeline/vlm.py ───────────────────────────────────────
+# ── 1. pipeline/vlm.py ────────────────────────────────────
 files["pipeline/vlm.py"] = '''
 import base64, json, os, re, time, random
 from typing import Optional
