@@ -8,7 +8,6 @@ Given:
   - full contract (nodes + edges)
 
 Returns:
-  - answer string (spoken back by TTS)
   - highlight_node id (node to pulse in AR scene)
 """
 
