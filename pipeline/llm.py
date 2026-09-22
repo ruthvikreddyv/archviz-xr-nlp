@@ -3,7 +3,6 @@ from dotenv import load_dotenv
 from groq import Groq
 from pipeline.graph_cleaner import clean_graph
 load_dotenv()
-
 MODEL = "llama-3.1-8b-instant"
 MAX_CONCEPTS = 45
 MAX_EDGES = 90
