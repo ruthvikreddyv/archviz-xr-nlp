@@ -6,7 +6,7 @@ This document explains every major technology choice made during development,
 including what alternatives were considered and why we chose what we chose.
 These justifications are intended for judges, researchers, and future developers.
 
----
+--
 
 ## Decision 1 — Groq (LLaMA 3.1) over Gemini / OpenAI for LLM
 
