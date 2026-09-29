@@ -1,5 +1,7 @@
 # DECISIONS.md — ArchViz-XR
 
+
+
 ## Architectural and Technology Decisions
 
 This document explains every major technology choice made during development,
