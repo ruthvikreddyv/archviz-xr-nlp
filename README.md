@@ -1,5 +1,6 @@
 # ArchViz-XR
 
+
 **Adaptive Research Comprehension via Hybrid NLP-XR Visualization**
 
 > Upload any academic diagram. Watch it become an interactive 3D AR experience — automatically.
