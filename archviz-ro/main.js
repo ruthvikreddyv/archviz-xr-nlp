@@ -5,6 +5,7 @@ const TYPE_COLORS = {
   component: 0x58f3de,
   layer: 0x4ca7ff,
   process: 0xffb34b,
+  
   data: 0xb9b6ff,
   named_entity: 0xf36bd7,
   default: 0x9aa6b2
