@@ -1,6 +1,7 @@
 import re, unicodedata
 VALID_TYPES = {"component","process","data","named_entity"}
 
+
 SHORT_LABEL_ALLOWLIST = {
     "add","cnn","rnn","gru","lstm","mlp","ffn","mha","vit","gan","vae",
     "dqn","ppo","a3c","sac","fc","bn","ln","pe","lm","kv","qkv",
