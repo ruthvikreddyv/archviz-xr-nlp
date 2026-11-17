@@ -2,6 +2,7 @@
 
 **Adaptive Research Comprehension via Hybrid NLP-XR Visualization**
 
+
 > Upload any academic diagram. Watch it become an interactive 3D AR experience — automatically.
 
 ArchViz-XR converts static research paper diagrams into intelligent, immersive AR visualizations using NLP, LLMs, and WebXR. No manual content authoring. Fully automatic.
